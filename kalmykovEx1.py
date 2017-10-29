@@ -32,14 +32,15 @@ class DiffApproxGenerator(object):
         b[self.order] = 1
         return np.linalg.solve(self.tTaylor,b)
 
-    def findAccuracy(self):
+    def getAccuracy(self):
+        if self.order%2 == 0:
+            return self.size+1-self.order
+        else:
+            return self.size-self.order
 
-        pass
-
-
-symmCase = DiffApproxGenerator(1,0,6)
+symmCase = DiffApproxGenerator(1,0,3)
 print symmCase.size
 print symmCase.getGrid()
-# print symmCase.tTaylor
+print symmCase.tTaylor
 print "Coeffs: " + str(symmCase.coeffs)
-print "Accuracy: " + str(symmCase.size-1)
+print "Accuracy: " + str(symmCase.getAccuracy())
