@@ -1,7 +1,8 @@
 import numpy as np
-from math import exp, sin, pi, fabs
+from math import exp, sin, pi, fabs, ceil, modf
 import matplotlib.pyplot as plt
 
+# Finite Difference Scheme
 def solver(u0, M_, nu_, s_):
     u = np.array(u0)
     v = np.zeros_like(u)
@@ -21,41 +22,83 @@ def solver(u0, M_, nu_, s_):
         v = t
     return u
 
+# Problem parameters
 nu = 0.9
 a = 1.
 
+# Define initial conditions
 initialCondition1 = lambda x: sin(2.*pi*x)
-initialCondition2 = lambda x: 1 if x < 0.5 else 0
+def initialCondition2(x):
+    t = modf(x)
+    if np.sign(x) >= 0:
+        if t[0] >= 0.5:
+            return 0
+        else:
+            return 1
+    else:
+        if fabs(t[0]) >= 0.5:
+            return 1
+        else:
+            return 0
+
+# Define some useful methods to evaluate exact solution, norm and schemes
 exactSolution = lambda f, x, t: f(x-a*t)
 maxNorm = lambda u, exact: np.fabs(u-exact).max()
 
 upwind = lambda u0, M_: solver(u0, M_, nu, fabs(nu))
 laxWendroff = lambda u0, M_: solver(u0, M_, nu, nu ** 2)
 
+# Input parametes:
+# @solver - desirable scheme
+# @initCond - initial conditions
+# @type - 'a' - means that we are solving original advection equation,
+# 'b' - means that we are solving modified equation for upwind scheme
+# @N - number of nodes
+
 def problemSetup(solver, initCond, type, N, nu, a):
     X,h = np.linspace(0.,1.,N,endpoint=False,retstep=True)
     tau = nu*h/a
-    M = int(N/nu+1)
+    M = int(ceil(N/nu))
     T = M*tau
     mu = fabs(a)*h/2.*(1-fabs(nu))
 
     exactSolution1a = lambda x,t: exactSolution(initCond,x,t)
     exactSolution1b = lambda x,t: exactSolution1a(x,t)*exp(-mu*4.*t*pi**2)
-    sol = exactSolution1a if type == 'a' else exactSolution1b
 
-    u0 = np.array([initCond(x) for x in X])
-    exact = np.array([sol(x,T) for x in X])
+    sol = None
+    if type == 'a':
+        sol = exactSolution1a
+    elif type == 'b':
+        sol = exactSolution1b
+
+    u0 = np.array([initCond(x) for x in X],dtype=np.float64)
+    exact = np.array([sol(x,T) for x in X],dtype=np.float64)
 
     u = solver(u0, M)
-    return maxNorm(u,exact)
+    return u, exact, X
 
+# You can insert a different letters (a or b) to get different plots.
+# TEST 1
 for scheme, name in zip([upwind, laxWendroff],['upwind', 'LaxWendroff']):
-    grids = [10**i for i in range(1, 6)]
+    grids = [10**i for i in range(1, 4)]
     errors = []
     for n in grids:
-        t = problemSetup(scheme,initialCondition1,'a',n,nu,a)
-        errors.append(t)
+        t = problemSetup(scheme,initialCondition1,'b',n,nu,a)
+        errors.append(maxNorm(t[0],t[1]))
     plt.loglog(grids, errors, label=name)
-
 plt.legend(loc='best')
 plt.show()
+
+# Comment the previous section and uncomment this. Run again and see three different plots for different grids
+# TEST 2
+# grids = [10**i for i in range(1, 4)]
+# for n in grids:
+#     plt.figure()
+#     plt.title(str(n))
+#     for scheme, name in zip([upwind, laxWendroff],['upwind', 'LaxWendroff']):
+#         t = problemSetup(scheme,initialCondition2,'a',n,nu,a)
+#         plt.plot(t[2],t[0],label=name)
+#     plt.plot(t[2],t[1],label='exact')
+#     plt.margins(x=0)
+#     plt.legend(loc='best')
+# plt.show()
