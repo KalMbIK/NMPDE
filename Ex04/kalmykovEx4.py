@@ -80,7 +80,6 @@ def solver(u0, M_, nu_, s_):
         v[0] = sigma[0]*u[1]+sigma[1]*u[0]+sigma[2]*u[N-1]
         for i in range(1, N-1):
             v[i] = sigma[0] * u[i+1] + sigma[1] * u[i] + sigma[2] * u[i-1]
-            pass
         # v[1:-1] = sigma[0]*u[2:]+sigma[1]*u[1:-1]+sigma[2]*u[:-2]
         v[N-1] = sigma[0]*u[0]+sigma[1]*u[N-1]+sigma[2]*u[N-2]
         # v[0] = u[0]-nu_2*(u[1]-u[N-1])+s_2*(u[1]-2.*u[0]+u[N-1])
@@ -154,26 +153,27 @@ def problemSetup(solver, initCond, type, N, nu, a):
 
 # You can insert a different letters (a or b) to get different plots.
 # TEST 1
-for scheme, name in zip([upwind, laxWendroff],['upwind', 'LaxWendroff']):
-    grids = [10**i for i in range(1, 4)]
-    errors = []
-    for n in grids:
-        t = problemSetup(scheme,initialCondition1,'b',n,nu,a)
-        errors.append(maxNorm(t[0],t[1]))
-    plt.loglog(grids, errors, label=name)
-plt.legend(loc='best')
-plt.show()
+# for scheme, name in zip([upwind, laxWendroff],['upwind', 'LaxWendroff']):
+#     grids = [10**i for i in range(1, 4)]
+#     errors = []
+#     for n in grids:
+#         t = problemSetup(scheme,initialCondition1,'b',n,nu,a)
+#         errors.append(maxNorm(t[0],t[1]))
+#     plt.loglog(grids, errors, label=name)
+#     print errors
+# plt.legend(loc='best')
+# plt.show()
 
 # Comment the previous section and uncomment this. Run again and see three different plots for different grids
 # TEST 2
-# grids = [10**i for i in range(1, 4)]
-# for n in grids:
-#     plt.figure()
-#     plt.title(str(n))
-#     for scheme, name in zip([upwind, laxWendroff],['upwind', 'LaxWendroff']):
-#         t = problemSetup(scheme,initialCondition2,'a',n,nu,a)
-#         plt.plot(t[2],t[0],label=name)
-#     plt.plot(t[2],t[1],label='exact')
-#     plt.margins(x=0)
-#     plt.legend(loc='best')
-# plt.show()
+grids = [10**i for i in range(1, 4)]
+for n in grids:
+    plt.figure()
+    plt.title(str(n))
+    for scheme, name in zip([upwind, laxWendroff],['upwind', 'LaxWendroff']):
+        t = problemSetup(scheme,initialCondition2,'a',n,nu,a)
+        plt.plot(t[2],t[0],label=name)
+    plt.plot(t[2],t[1],label='exact')
+    plt.margins(x=0)
+    plt.legend(loc='best')
+plt.show()
